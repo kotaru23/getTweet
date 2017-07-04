@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
 実行環境: Python3.6.1
+macOS 10.12.5
+Ubuntu 16.04
 このプログラムはアカウント名(screen name)を標準入力に与えるとそのアカウントのつぶやきを過去に遡って採取します．
-採取したつぶやきデータをjson形式で本プログラムのあるディレクトリのjsonフォルダに保存をします
+採取したつぶやきデータをjson形式でcollected_tweetディレクトリに保存し，zipファイルとして保存します
 その中身はdictionaryを要素とするlistです．
 
 指定したアカウントが鍵垢だったり，そもそも存在しない場合，データを取得せず異常終了します．
@@ -13,9 +15,14 @@ from requests_oauthlib import OAuth1Session
 import json
 from time import sleep, mktime
 import datetime
-from sys import exit
 from logging import getLogger, FileHandler, DEBUG, Formatter
-from timeout_decorator import timeout
+from zipfile import ZipFile
+from zipfile import ZIP_DEFLATED
+from os import remove, mkdir, listdir
+from os.path import exists
+# from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
+import asyncio
 
 '''
 Twitterのスクリーンネーム(@につづく名前)，取得したTwitterのつぶやきデータを保存するリスト，リクエストを投げる際に必要なパラメータを
@@ -24,10 +31,6 @@ Twitterのスクリーンネーム(@につづく名前)，取得したTwitterの
 ネットワークに繋がっていなかったり異常がある場合は強制終了する
 '''
 
-TWITTER_CONSUMER_KEY = ""
-TWITTER_CONSUMER_SECRET = ""
-TWITTER_ACCESS_TOKEN_KEY = ""
-TWITTER_ACCESS_TOKEN_SECRET = ""
 
 # Logger settings
 handler = FileHandler('getTweet.log', mode='a', encoding='utf_8')
@@ -39,33 +42,48 @@ handler.setFormatter(formatter)
 request_maximum = '200'
 
 
-def getTweet(screen_name, save_list, params):
+def getTweet(screen_name, params, twitter_keys):
     # Set Logger
     logger_getTweet = getLogger('getTweet')
     logger_getTweet.setLevel(DEBUG)
     logger_getTweet.addHandler(handler)
-    res = requestTweet(params)
-    if res is None:
-        return None
-    tweet = json.loads(res.text)
-    save_list.extend(tweet)
-    # API上限に達するまで取得し続ける．API上限に達すると配列tweetの長さが0になる
-    if len(tweet) != 0:
-        params = {'screen_name': screen_name, 'count': request_maximum, 'max_id': tweet[-1]['id'] - 1}
-        save_list = getTweet(screen_name, save_list, params)
-    return save_list
+    # initialize loop counter
+    loop_counter = 0
+    # initialize the list to save tweets
+    save_list = []
+    # API上限に達するまで取得し続ける．API上限に達すると配列tweetの長さが0に
+    # 200 tweets per 1 loop
+    for i in range(20):
+        res = requestTweet(params, twitter_keys)
+        if res is None:
+            return None
+        tweet = json.loads(res.text)
+        # The number of tweet is under 1000, so tweet is discarded
+        try:
+            if (i == 0) and (tweet[0]['user']['statuses_count'] < 1000):
+                logger_getTweet.debug('The number of posted tweet is under 1000, so the tweet is discarded. Screen Name:' + screen_name)
+                return None
+        except IndexError:
+            pass
+        if len(tweet) != 0:
+            save_list.extend(tweet)
+            params = {'screen_name': screen_name, 'count': request_maximum,     'max_id': tweet[-1]['id'] - 1}
+        else:
+            return save_list
+    return None
 
 
-def requestTweet(params):
+def requestTweet(params, twitter_keys):
     # Set Logger
     logger_request = getLogger('requestTweet')
     logger_request.setLevel(DEBUG)
     logger_request.addHandler(handler)
+    twitter_consumer_key, twitter_consumer_secret, twitter_access_token_key, twitter_access_token_secret = twitter_keys
     # Start Session
-    session = OAuth1Session(TWITTER_CONSUMER_KEY,
-                            TWITTER_CONSUMER_SECRET,
-                            TWITTER_ACCESS_TOKEN_KEY,
-                            TWITTER_ACCESS_TOKEN_SECRET,
+    session = OAuth1Session(twitter_consumer_key,
+                            twitter_consumer_secret,
+                            twitter_access_token_key,
+                            twitter_access_token_secret,
                             request_maximum)
     # このURLで特定のユーザのつぶやきを取得することができる
     url = 'https://api.twitter.com/1.1/statuses/user_timeline.json'
@@ -79,7 +97,7 @@ def requestTweet(params):
         logger_request.debug('short sleep: wait 60 sec')
         sleep(60)
         logger_request.debug('restart')
-        res = requestTweet(params)
+        res = requestTweet(params, twitter_keys)
         return res
     if status == 404:
         logger_request.warn('Screen name: ' + str(params['screen_name']) + ' was NOT FOUND')
@@ -88,7 +106,7 @@ def requestTweet(params):
         logger_request.debug('Too Many Requests')
         wait(session)
         logger_request.debug('Restart')
-        res = requestTweet(params)
+        res = requestTweet(params, twitter_keys)
         return res
     else:
         logger_request.warn('Error   account: ' + str(params['screen_name']) + ' status = ' + str(status))
@@ -122,53 +140,101 @@ def wait(session):
     return None
 
 
-@timeout(900)
-def Main():
+def get_tweet_of_1_account(screen_name, save_path, twitter_keys):
     # Set Logger
-    logger_main = getLogger('Main')
+    logger_gta = getLogger('get_tweet_of_1_account')
+    logger_gta.setLevel(DEBUG)
+    logger_gta.addHandler(handler)
+    # Show twitter screen name
+    logger_gta.debug('Getting tweet of ' + screen_name)
+    params = {'screen_name': screen_name, 'count': request_maximum}
+    save_list = getTweet(screen_name, params, twitter_keys)
+    if (save_list == []) or (save_list is None):
+        logger_gta.warn('Failed to get tweet of ' + screen_name)
+        return None
+    print(save_path)
+    try:
+        f = open(save_path, 'w')
+        json.dump(save_list, f, ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
+        f.close()
+        logger_gta.debug('Successfully Saved tweet data of ' + screen_name + ' to ' + save_path)
+        with ZipFile(save_path.replace('.json', '.zip'), 'w', ZIP_DEFLATED) as zf:
+            zf.write(save_path)
+            zf.close()
+        remove(save_path)
+    except ValueError:
+        logger_gta.warn('failed to write json file')
+        return None
+    except OSError:
+        logger_gta.warn('failed to open file.')
+        return None
+    return save_path
+
+
+async def get_tweet_and_save(screen_name_list, save_dir, twitter_keys_list):
+    # executor = ThreadPoolExecutor(len(twitter_keys_list))
+    executor = ProcessPoolExecutor(len(twitter_keys_list))
+    # Set Logger
+    logger_gts = getLogger('get_tweet_and_save')
+    logger_gts.setLevel(DEBUG)
+    logger_gts.addHandler(handler)
+    # set async
+    queue = asyncio.Queue()
+    for scn in screen_name_list:
+        queue.put_nowait(scn)
+    loop = asyncio.get_event_loop()
+
+    async def get_tweet_concurrent(screen_name_queue, twitter_keys):
+        while not screen_name_queue.empty():
+            screen_name = await screen_name_queue.get()
+            save_path = save_dir + str(screen_name) + '.json'
+            future = loop.run_in_executor(executor, get_tweet_of_1_account, screen_name, save_path, twitter_keys)
+            # await future
+            await asyncio.wait_for(future, 900)
+    task = [get_tweet_concurrent(queue, keys) for keys in twitter_keys_list]
+    return await asyncio.wait(task)
+
+
+def setup():
+    def read_keys(key_path):
+        with open(key_path) as f:
+            lines = f.readlines()
+            twitter_keys = tuple(map(lambda x: x.replace('\n', '').replace('\r', ''), lines))
+
+        if len(tuple(twitter_keys)) != 4:
+            logger_main.warn('invalid key file')
+            return None
+        return twitter_keys
+
+    # Set Logger
+    logger_main = getLogger('setup')
     logger_main.setLevel(DEBUG)
     logger_main.addHandler(handler)
-    with open('twitter_keys.txt') as f:
-        lines = f.readlines()
-        keys = list(map(lambda x: x.replace('\n', ''), lines))
-        global TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, TWITTER_ACCESS_TOKEN_KEY, TWITTER_ACCESS_TOKEN_SECRET
-        TWITTER_CONSUMER_KEY = keys[0]
-        TWITTER_CONSUMER_SECRET = keys[1]
-        TWITTER_ACCESS_TOKEN_KEY = keys[2]
-        TWITTER_ACCESS_TOKEN_SECRET = keys[3]
-
-    # get std input
-    screen_name = input()
-    # Show twitter screen name
-    logger_main.debug('Getting tweet of ' + screen_name)
-    params = {'screen_name': screen_name, 'count': request_maximum}
-    save_list = []
-    save_list = getTweet(screen_name, save_list, params)
-    if (save_list == []) or (save_list is None):
-        logger_main.warn('Failed to get tweet of ' + screen_name)
-        exit(1)
-    try:
-        f = open('./json/' + str(screen_name) + '.json', 'w')
-        json.dump(save_list, f, ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
-    except ValueError:
-        logger_main.warn('failed to write json file')
-        exit(1)
-    except OSError:
-        logger_main.warn('could not open file.')
-        exit(1)
-    finally:
-        f.close()
-        logger_main.debug('Successfully Saved tweet of ' + screen_name + ' to ./json/' + screen_name + '.json')
+    logger_main.debug('Started to collect tweets')
+    # Set Twitter API Keys
+    key_dir = './twitter_keys/'
+    if exists(key_dir):
+        key_files = listdir(key_dir)
+        key_list = [read_keys(key_path) for key_path in list(map(lambda x: key_dir + x, key_files)) if read_keys(key_path) is not None]
+    else:
+        logger_main.warn('No directory for twitter keys')
         exit(0)
+    # get the text of screen name list
+    try:
+        with open('screen_name.txt') as sf:
+            sl = sf.readlines()
+        screen_name_list = list(map(lambda x: x.replace('\n', '').replace('\r', ''), sl))
+    except OSError:
+        logger_main.warn('No screen_name.txt')
+        exit(0)
+    # determine where to save files
+    save_dir = './collected_tweet/'
+    if exists(save_dir) is False:
+        mkdir(save_dir)
+    return [screen_name_list, save_dir, key_list]
 
 
 if __name__ == '__main__':
-    logger_timeout = getLogger('global')
-    logger_timeout.setLevel(DEBUG)
-    logger_timeout.addHandler(handler)
-    from timeout_decorator import TimeoutError
-    try:
-        Main()
-    except TimeoutError:
-        logger_timeout.warn('TIME OUT')
-        exit(1)
+    screen_name_list, save_dir, key_list = setup()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(get_tweet_and_save(screen_name_list, save_dir, key_list))
