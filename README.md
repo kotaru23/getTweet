@@ -1,15 +1,13 @@
-# getTweet
-
-# Tweetの大量収集
+## Tweetの大量収集
 Tweetを取得する際に必要なこと  
 つぶやきを収集するために，いくつかやらなければならないことがある．  
   
-## 本ドキュメントの作成日時
+### 本ドキュメントの作成日時
 20170502-20170503  
-## 修正日時
+### 修正日時
 20170704  
   
-## 動作を検証した環境
+### 動作を検証した環境
 macOS Sierra 10.12.4, 10.12.5  
 Ubuntu 16.04.2 LTS  
 CentOS Linux release 7.3.1611 (Core)  
@@ -22,8 +20,8 @@ Bash
 上記環境以外でもネットワーク環境が適切に設定されていて，Bashが使えてPython 3系で，必要なことが全てなされているのであるなら，つぶやき収集プログラムは動くはず． 
   
   
-# 準備
-## Python3のインストール，および依存ライブラリのインストール
+## 準備
+### Python3のインストール，および依存ライブラリのインストール
 各OSの手順に従ってPython3をインストールしてください．  
 Ubuntu16.04の場合はデフォルトでpython3がインストールされています．  
 その後  
@@ -39,7 +37,7 @@ sudo apt-get install zip -y
 
 
   
-## Twitter API Keyを4種類取得
+### Twitter API Keyを4種類取得
 Twitter Application Managementへアクセス  
 https://apps.twitter.com/  
   
@@ -53,7 +51,7 @@ Name, Description, Website, Callback URLともにデタラメで構わないが�
 全て正しく入力するとConsumer KeyとConsumer Keyが生成される．つぎに上にあるタブからKeys and Access Tokensをクリックし，そのページの下部にあるTake ActionsのCreate my access tokenをクリックする  
 これで，アクセストークンが作成されたはず．  
 
-### twitter_keysの準備
+#### twitter_keysの準備
 このConsumer Key, Consumer Secret, Access Token, Access Token Secretの四つのキーをテキストファイルに上からこの順で記述する  
 
 具体的には下記のように記述する．(無論,下記をコピペしても動かない)  
@@ -65,7 +63,7 @@ yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
 $  
 このテキストファイルはtwitter_keysディレクトリの直下に置いてください  
   
-### screen_name.txtの配置
+#### screen_name.txtの配置
 下記のようにscreen_name.txtに取得したいTwitterアカウントのスクリーンネームを記述してください  
 これをgetTweets.pyと同じディレクトリの階層に入れてください．  
 $ cat screen_name.txt | head   
@@ -78,7 +76,7 @@ hara_hetta
 
 これで準備完了  
 
-# つぶやきの取得
+## つぶやきの取得
 
 つぶやきを収集するには下記のコマンドを実行すれば良い  
 $ python getTweets.py  
@@ -88,7 +86,7 @@ $ python getTweets.py
 collected_tweetディレクトリがなければ，自動作成されます．
   
 
-## Pythonのログ
+### 本プログラムのログ
 
 ログは下記のようになっている  
 下記の二行があれば正常につぶやきが取得できている  
@@ -105,7 +103,7 @@ collected_tweetディレクトリがなければ，自動作成されます．
 -> ずっと401 error を吐いているようであれば，おそらくアクセスキーが間違ってるので直してください  
 
   
-# つぶやき収集プログラムの強制終了
+## つぶやき収集プログラムの強制終了
 プログラムを強制終了したいときはCtrl+CかpsコマンドでxargsののPIDを確認し，killコマンドでプロセスを強制終了すると良いでしょう．
 $ ps | grep python | awk '{print $1}' | xargs kill  
 (上記コマンドは本プログラム以外にpythonプログラムが動いていないということを確認してから実行してください)
