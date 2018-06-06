@@ -156,7 +156,7 @@ def save_tweet(screen_name: str, save_path: str, twitter_keys: list):
 
 
 @click.command()
-@click.option("--key", "-k", help="Twitter Key Path")
+@click.option("--key", "-k", help="Twitter API Keysを記述したtomlファイルのPath")
 @click.option("--screen_name_list", "-s", help="Screen Nameが記述されたファイルのパス")
 @click.option("--output", "-o", help="出力のjsonファイルを置くパス")
 def main(key: str, screen_name_list: str, output: str) -> list:
