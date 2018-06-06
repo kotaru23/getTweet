@@ -4,8 +4,7 @@
 
 - Python 3.6.x  
 - OS: LinuxまたはmacOS
-- pipenv
-
+- docker(optional)
 
 ## Proxy
 プロキシの設定ができていないと大学内からTwitter APIを使うことができない。  
