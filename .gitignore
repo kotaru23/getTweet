@@ -3,6 +3,8 @@ getTweet.log
 .DS_Store
 .python-version
 *.un~
+*.swp
+
 ### https://raw.github.com/github/gitignore/0c5ace9de99c220bb69012581d68ca6fa977449b/Python.gitignore
 
 # Byte-compiled / optimized / DLL files
