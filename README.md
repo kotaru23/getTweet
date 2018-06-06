@@ -6,11 +6,11 @@ OS: CentOS7, macOS Sierra
 で確認済み  
 
 ## Proxy
-プロキシの設定が必要な場合は下記のように設定をする。
-下記をterminalで入力する  
+プロキシの設定ができていないと大学内からTwitter APIを使うことができない。  
+下記をterminalで入力すること  
 
 ```
-$ export https_proxy=your.proxy.jp:8080
+$ export https_proxy=proxy.uec.ac.jp:8080
 ```
 
 ## 依存ライブラリのインストール
