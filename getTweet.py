@@ -18,10 +18,8 @@ import datetime
 from logging import getLogger, FileHandler, DEBUG, Formatter
 from os import mkdir, listdir
 from os.path import exists
-from multiprocessing import Process, Queue
 import codecs
 import sys
-from argparse import ArgumentParser
 
 '''
 Twitterのスクリーンネーム(@につづく名前)，取得したTwitterのつぶやきデータを保存するリスト，リクエストを投げる際に必要なパラメータを

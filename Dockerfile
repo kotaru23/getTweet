@@ -1,7 +1,7 @@
-FROM ubuntu:18.04
+FROM python:3.6.5
 
 # -- Install Pipenv:
-RUN apt update && apt install python3-pip -y && pip3 install pipenv
+RUN apt-get update -y && apt-get upgrade -y
 
 ENV LC_ALL C.UTF-8
 ENV LANG C.UTF-8
@@ -11,12 +11,10 @@ RUN set -ex && mkdir /app
 
 WORKDIR /app
 
-# -- Adding Pipfiles
-ONBUILD COPY Pipfile Pipfile
-ONBUILD COPY Pipfile.lock Pipfile.lock
+COPY requirements.txt requirements.txt
 
 # -- Install dependencies:
-ONBUILD RUN set -ex && pipenv install --deploy --system
+RUN  pip install -r requirements.txt
 
 COPY ./getTweet.py /app/getTweet.py
-CMD python3 getTweet.py -k /app/key.toml -s /app/screen_name.txt -o /app/output/
+CMD python getTweet.py -k /app/key.toml -s /app/screen_name.txt -o /app/output/
