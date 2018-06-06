@@ -25,7 +25,7 @@ tomlファイルに下記を記述する。
 - Access Token
 - Access Token Secret
 
-````
+```
 $ cat twitter-api-keys/api-keys.toml
 consumerKey = "yourConsumerKey"
 consumerSecret = "yourConsumerSecret"
