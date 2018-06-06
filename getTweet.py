@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-実行環境: Python3.6.3
 このプログラムはアカウント名(screen name)を標準入力に与えるとそのアカウントのつぶやきを過去に遡って採取します．
 採取したつぶやきデータをjson形式で保存します
 その中身はdictionaryを要素とするlistです．
@@ -10,6 +9,8 @@
 なおつぶやきデータ中に含まれる時刻(created_at)はUTCです．
 '''
 
+import click
+import toml
 from requests_oauthlib import OAuth1Session
 import json
 from time import sleep, mktime
@@ -129,9 +130,9 @@ def wait(session):
     return None
 
 
-def getTweetandSave(screen_name: str, save_path: str, twitter_keys: list):
+def save_tweet(screen_name: str, save_path: str, twitter_keys: list):
     # Set Logger
-    logger_gta = getLogger('getTweetandSave')
+    logger_gta = getLogger('save_tweet')
     logger_gta.setLevel(DEBUG)
     logger_gta.addHandler(handler)
     # Show twitter screen name
@@ -154,91 +155,38 @@ def getTweetandSave(screen_name: str, save_path: str, twitter_keys: list):
     return save_path
 
 
-def get_tweet_concurrent(q, save_dir: str, twitter_keys: list):
-    while q.empty() is False:
-        screen_name = q.get()
-        save_path = save_dir + str(screen_name) + '.json'
-        getTweetandSave(screen_name, save_path, twitter_keys)
-    return None
-
-
-def get_tweet_and_save(screen_name_list: list, save_dir: str, twitter_keys_list: list):
-    # Set Logger
-    logger_gts = getLogger('get_tweet_and_save')
-    logger_gts.setLevel(DEBUG)
-    logger_gts.addHandler(handler)
-    # screen name queue
-    q = Queue()
-    for scn in screen_name_list:
-        q.put(scn)
-    jobs = []
-    for tk in twitter_keys_list:
-        job = Process(target=get_tweet_concurrent, args=(q, save_dir, tk))
-        jobs.append(job)
-        job.start()
-    [j.join() for j in jobs]
-    return None
-
-
-def setup() -> list:
-    def read_keys(key_path: str):
-        with open(key_path) as f:
-            lines = f.readlines()
-            twitter_keys = tuple(map(lambda x: x.replace('\n', '').replace('\r', ''), lines))
-        if len(tuple(twitter_keys)) != 4:
-            logger_main.warn('invalid key file')
-            return None
-        return twitter_keys
-
-    parser = ArgumentParser(description="Twitter REST APIを用いて、あるスクリーンネームの人の過去のつぶやきを取れるだけ収集します。")
-    # determine where to save files
-    parser.add_argument('-o', '--out',
-                        action='store',
-                        default='./collected_tweet/',
-                        const='./collected_tweet/',
-                        nargs='?',
-                        type=str,
-                        help='path to save Tweet data')
-    # input file
-    parser.add_argument('-i', '--inputfile',
-                        action='store',
-                        default='',
-                        const='',
-                        nargs='?',
-                        type=str,
-                        help='path to save Tweet data')
-    args = parser.parse_args()
-    save_dir = args.out
+@click.command()
+@click.option("--key", "-k", help="Twitter Key Path")
+@click.option("--screen_name_list", "-s", help="Screen Nameが記述されたファイルのパス")
+@click.option("--output", "-o", help="出力のjsonファイルを置くパス")
+def main(key: str, screen_name_list: str, output: str) -> list:
     # Set Logger
     logger_main = getLogger('setup')
     logger_main.setLevel(DEBUG)
     logger_main.addHandler(handler)
     logger_main.debug('Started to collect tweets')
-    # Set Twitter API Keys
-    key_dir = './twitter-api-keys/'
-    if exists(key_dir):
-        key_files = listdir(key_dir)
-        key_list = [read_keys(key_path) for key_path in list(map(lambda x: key_dir + x, key_files)) if read_keys(key_path) is not None]
-    else:
-        logger_main.warn('No directory for twitter keys')
-        exit(0)
+    # get Twitter API Keys
+    with open(key) as f:
+        twitter_toml = toml.load(f)
+    twitter_keys = list(twitter_toml.values())
     # get the text of screen name list
-    try:
-        # Screen nameが一列に並べられたファイルを読み込みます
-        screen_name = args.inputfile
-        with open(screen_name) as sf:
+    if screen_name_list is not None:
+        with open(screen_name_list) as sf:
             sl = sf.readlines()
-        screen_name_list = list(map(lambda x: x.replace('\n', '').replace('\r', ''), sl))
-    except OSError:
+        screen_names = list(map(lambda x: x.replace('\n', '').replace('\r', ''), sl))
+    else:
         # screen nameを標準入力から読み込む
         logger_main.warn('screen_name.txtが存在しません。標準入力から取得します')
         screen_name = sys.stdin.readline()
-        screen_name_list = [screen_name.replace("\n", "").replace("\r", "")]
-    if exists(save_dir) is False:
-        mkdir(save_dir)
-    return [screen_name_list, save_dir, key_list]
+        screen_names = [screen_name.replace("\n", "").replace("\r", "")]
+    # 出力するディレクトリが存在しなければ作成
+    if exists(output) is False:
+        mkdir(output)
+    for sn in screen_names:
+        jsonfilename = output + "/" + sn + ".json"
+        save_tweet(sn, jsonfilename, twitter_keys)
+    return None
 
 
 if __name__ == '__main__':
-    screen_name_list, save_dir, key_list = setup()
-    get_tweet_and_save(screen_name_list, save_dir, key_list)
+    main()
