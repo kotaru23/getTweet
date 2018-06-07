@@ -65,4 +65,4 @@ $ ./run.sh ./twitter-api-keys/api-keys.toml ~/project/sample_screen_name.txt ./ 
 echo "screen_name" | ./getTweet.py -k "Twitter API Keysを記述したtomlファイルのPath"  -o "jsonファイルを出力するディレクトリ"
 ```
 
-取得したつぶやきデータはjson形式で保存されます。
+取得したつぶやきデータはgzip形式で保存されます。中身はjsonファイルです。
