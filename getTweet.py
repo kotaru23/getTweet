@@ -20,6 +20,7 @@ from os import mkdir, listdir
 from os.path import exists
 import codecs
 import sys
+import gzip
 
 '''
 Twitterのスクリーンネーム(@につづく名前)，取得したTwitterのつぶやきデータを保存するリスト，リクエストを投げる際に必要なパラメータを
@@ -142,10 +143,11 @@ def save_tweet(screen_name: str, save_path: str, twitter_keys: list):
         return None
     # TweetをJSON形式で保存する
     try:
-        # code UTF-8
-        f = codecs.open(save_path, 'w', 'utf-8')
-        json.dump(save_list, f, ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
-        f.close()
+        # jsonファイルをgzip形式で圧縮し保存
+        with gzip.GzipFile(save_path + ".gz", "w") as gf:
+            json_str = json.dumps(save_list, ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': ')) + "\n"
+            json_bytes = json_str.encode("utf-8")
+            gf.write(json_bytes)
         logger_gta.debug('Successfully Saved tweet data of ' + screen_name + ' to ' + save_path)
     except ValueError:
         logger_gta.warn('failed to write json file')
