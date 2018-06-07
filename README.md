@@ -15,7 +15,10 @@ $ export https_proxy=proxy.uec.ac.jp:8080
 ```
 
 ## 依存ライブラリのインストール
+
+```
 pip install -r requirements.txt
+```
 
 ## Twitter API Keyの用意
 tomlファイルに下記を記述する。
@@ -43,6 +46,13 @@ Options:
   -s, --screen_name_list TEXT  Screen Nameが記述されたファイルのパス
   -o, --output TEXT            出力のjsonファイルを置くパス
   --help                       Show this message and exit.
+```
+
+Dockerを使う場合は、
+
+```
+$ docker pull geotaru/get-tweet # DockerのイメージをDocker Hubからダウンロード
+$ ./run.sh `pwd`/twitter-api-keys/api-keys.toml $HOME/project/sample_screen_name.txt `pwd` # Twitter API keyのパス, screen_nameのリスト, 出力するディレクトリのパスをそれぞれ絶対パスで指定
 ```
 
 ## Example
