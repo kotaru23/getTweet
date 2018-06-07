@@ -4,7 +4,7 @@
 
 - Python 3.6.x  
 - OS: LinuxまたはmacOS
-- docker(optional)
+- Docker(optional)
 
 ## Proxy
 プロキシの設定ができていないと大学内からTwitter APIを使うことができない。  
@@ -52,7 +52,7 @@ Dockerを使う場合は、
 
 ```
 $ docker pull geotaru/get-tweet # DockerのイメージをDocker Hubからダウンロード
-$ ./run.sh `pwd`/twitter-api-keys/api-keys.toml $HOME/project/sample_screen_name.txt `pwd` # Twitter API keyのパス, screen_nameのリスト, 出力するディレクトリのパスをそれぞれ絶対パスで指定
+$ ./run.sh ./twitter-api-keys/api-keys.toml ~/project/sample_screen_name.txt ./ # Twitter API keyのパス, screen_nameのリスト, 出力するディレクトリのパスをそれぞれパスで指定
 ```
 
 ## Example
