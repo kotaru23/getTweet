@@ -22,6 +22,8 @@ pip install -r requirements.txt
 
 ## Twitter API Keyの用意
 tomlファイルに下記を記述する。
+これらは https://apps.twitter.com/ から入手できる
+
 - Consumer Key
 - Consumer Secret
 - Access Token
@@ -31,7 +33,7 @@ tomlファイルに下記を記述する。
 $ cat twitter-api-keys/api-keys.toml
 consumerKey = "yourConsumerKey"
 consumerSecret = "yourConsumerSecret"
-accessToken ="yourAccessToken"
+accessToken = "yourAccessToken"
 accessTokenSecret = "yourAccessTokenSecret"
 ```
 
@@ -48,13 +50,6 @@ Options:
   --help                       Show this message and exit.
 ```
 
-Dockerを使う場合は、
-
-```
-$ docker pull geotaru/get-tweet # DockerのイメージをDocker Hubからダウンロード
-$ ./run.sh ./twitter-api-keys/api-keys.toml ~/project/sample_screen_name.txt ./ # Twitter API keyのパス, screen_nameのリスト, 出力するディレクトリのパスをそれぞれパスで指定
-```
-
 ## Example
 
 ```
@@ -66,3 +61,10 @@ echo "screen_name" | ./getTweet.py -k "Twitter API Keysを記述したtomlファ
 ```
 
 取得したつぶやきデータはgzip形式で保存されます。中身はjsonファイルです。
+
+Dockerを使う場合は、
+
+```
+$ docker pull geotaru/get-tweet # DockerのイメージをDocker Hubからダウンロード
+$ ./run.sh ./twitter-api-keys/api-keys.toml ~/project/sample_screen_name.txt ./ # Twitter API keyのパス, screen_nameのリスト, 出力するディレクトリのパスをそれぞれパスで指定
+```
