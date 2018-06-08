@@ -201,6 +201,9 @@ def main(key: str, screen_name_list: str, output: str) -> list:
     for sn in screen_names:
         jsonfilename = output + "/" + sn + ".json"
         save_tweet(sn, jsonfilename, twitter_keys)
+        # 最後に取得してアカウントを保存
+        with open("./ScreenNameLatest.txt", "w") as f:
+            f.write(sn)
     return None
 
 
