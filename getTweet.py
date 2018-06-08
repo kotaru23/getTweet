@@ -183,7 +183,8 @@ def main(key: str, screen_name_list: str, output: str) -> list:
     # get Twitter API Keys
     with open(key) as f:
         twitter_toml = toml.load(f)
-    twitter_keys = list(twitter_toml.values())
+    # Twitterの鍵を読み込み
+    twitter_keys = [twitter_toml["consumerKey"], twitter_toml["consumerSecret"], twitter_toml["accessToken"], twitter_toml["accessTokenSecret"]]
     # get the text of screen name list
     if screen_name_list is not None:
         with open(screen_name_list) as sf:
