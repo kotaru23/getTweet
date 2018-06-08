@@ -7,6 +7,7 @@ getTweet.log
 /ScreenNameLatest.txt
 /screen_name.txt
 /screen_name_tmp.txt
+/output
 
 ### https://raw.github.com/github/gitignore/0c5ace9de99c220bb69012581d68ca6fa977449b/Python.gitignore
 
