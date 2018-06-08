@@ -11,4 +11,4 @@ function getFullPath () {
     fi
 }
 
-docker run --rm -v `getFullPath $1`:/app/key.toml -v `getFullPath $2`:/app/screen_name.txt -v `getFullPath $3`:/app/output/ -v `getFullPath`$4:/app/ScreenNameLatest.txt -v `getFullPath`$5:/app/getTweet.log geotaru/get-tweet
+docker run --rm -v `getFullPath $1`:/app/key.toml -v `getFullPath $2`:/app/screen_name.txt -v `getFullPath $3`:/app/output/ -v `getFullPath $4`:/app/ScreenNameLatest.txt -v `getFullPath $5`:/app/getTweet.log geotaru/get-tweet
