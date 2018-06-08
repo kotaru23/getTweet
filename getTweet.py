@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 '''
 このプログラムはアカウント名(screen name)を標準入力に与えるとそのアカウントのつぶやきを過去に遡って採取します．
-採取したつぶやきデータをjson形式で保存します
 その中身はdictionaryを要素とするlistです．
 
 指定したアカウントが鍵垢だったり，そもそも存在しない場合，データを取得せず異常終了します．
@@ -36,11 +35,11 @@ handler.setLevel(DEBUG)
 formatter = Formatter('%(asctime)s-%(name)s-%(levelname)s-%(message)s')
 handler.setFormatter(formatter)
 
-# 1回のリクエストで取得できるユーザのつぶやきデータの総数は200
-request_maximum = '200'
-
 
 def getTweet(screen_name: str, params: dict, twitter_keys: list):
+    """
+    過去に遡ってツイートを取得する
+    """
     # Set Logger
     logger_getTweet = getLogger('getTweet')
     logger_getTweet.setLevel(DEBUG)
@@ -52,17 +51,22 @@ def getTweet(screen_name: str, params: dict, twitter_keys: list):
     for i in range(20):
         res = requestTweet(params, twitter_keys)
         if res is None:
+            # つぶやき収集失敗
             return None
         tweet = json.loads(res.text)
         if len(tweet) != 0:
             save_list.extend(tweet)
-            params = {'screen_name': screen_name, 'count': request_maximum, 'max_id': tweet[-1]['id'] - 1}
+            # 1回のリクエストで取得できるユーザのつぶやきデータの総数は200
+            params = {'screen_name': screen_name, 'count': '200', 'max_id': tweet[-1]['id'] - 1}
         else:
             return save_list
     return None
 
 
 def requestTweet(params: dict, twitter_keys: list):
+    """
+    APIへのアクセスを制御する
+    """
     # Set Logger
     logger_request = getLogger('requestTweet')
     logger_request.setLevel(DEBUG)
@@ -73,7 +77,7 @@ def requestTweet(params: dict, twitter_keys: list):
                             twitter_consumer_secret,
                             twitter_access_token_key,
                             twitter_access_token_secret,
-                            request_maximum)
+                            '200')
     # このURLで特定のユーザのつぶやきを取得することができる
     url = 'https://api.twitter.com/1.1/statuses/user_timeline.json'
     # データを取得
@@ -103,6 +107,9 @@ def requestTweet(params: dict, twitter_keys: list):
 
 
 def wait(session):
+    """
+    APIへのアクセス過多を防ぐためにプログラムを停止する時間を求め、その時間だけsleepする
+    """
     # Set Logger
     logger_wait = getLogger('Wait')
     logger_wait.setLevel(DEBUG)
@@ -124,19 +131,23 @@ def wait(session):
     restart = session.get(check_time_url)
     restart_json = json.loads(restart.text)
     remaining = restart_json['resources']['statuses']['/statuses/user_timeline']['remaining']
-    if int(remaining) < int(request_maximum):
+    if int(remaining) < int('200'):
         wait(session)
     return None
 
 
 def save_tweet(screen_name: str, save_path: str, twitter_keys: list):
+    """
+    取得したつぶやきを、gzipで圧縮し保存
+    """
     # Set Logger
     logger_gta = getLogger('save_tweet')
     logger_gta.setLevel(DEBUG)
     logger_gta.addHandler(handler)
     # Show twitter screen name
     logger_gta.debug('Getting tweet of ' + screen_name)
-    params = {'screen_name': screen_name, 'count': request_maximum}
+    params = {'screen_name': screen_name, 'count': '200'}
+    # つぶやきの取得
     save_list = getTweet(screen_name, params, twitter_keys)
     if (save_list == []) or (save_list is None):
         logger_gta.warn('Failed to get tweet of ' + screen_name)
@@ -160,6 +171,10 @@ def save_tweet(screen_name: str, save_path: str, twitter_keys: list):
 @click.option("--screen_name_list", "-s", help="Screen Nameが記述されたファイルのパス")
 @click.option("--output", "-o", help="出力のjsonファイルを置くパス")
 def main(key: str, screen_name_list: str, output: str) -> list:
+    """
+    Twitter APIの鍵やscreen nameの読み込みを行う
+    screen nameそれぞれに対してつぶやきを取得し保存する
+    """
     # Set Logger
     logger_main = getLogger('setup')
     logger_main.setLevel(DEBUG)
