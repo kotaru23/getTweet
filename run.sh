@@ -1,6 +1,7 @@
 #!/bin/bash
 
 function getFullPath () {
+    # パスを絶対パスにする
     if [ ${1:0:1} != "/" ]; then
         # 相対パスが引数に入力されたとき(1文字目が"/"なら)
         echo `pwd`/$1
