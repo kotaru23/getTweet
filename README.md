@@ -62,9 +62,16 @@ echo "screen_name" | ./getTweet.py -k "Twitter API Keysを記述したtomlファ
 
 取得したつぶやきデータはgzip形式で保存されます。中身はjsonファイルです。
 
-Dockerを使う場合は、
+## Dockerを使う場合は、
+
+- 第1引数にTwitter API Keyのtomlファイルのパスを指定
+- 第2引数に取得したいscreen_name.txtを追加
+- 第3引数に出力先ディレクトリを指定
+- 第4引数に最後に取得したスクリーンネームを保存するためのファイルパスを指定
+- 第5引数にログファイルのパスを指定
 
 ```
-$ docker pull geotaru/get-tweet # DockerのイメージをDocker Hubからダウンロード
-$ ./run.sh ./twitter-api-keys/api-keys.toml ~/project/sample_screen_name.txt ./ # Twitter API keyのパス, screen_nameのリスト, 出力するディレクトリのパスをそれぞれパスで指定
+$ docker pull geotaru/get-tweet # DockerのイメージをDocker Hubからダウンロード(最初のみ)
+$ ./run.sh ./twitter-api-keys/api-keys.toml ./screen_name.txt ./output/ ./ScreenNameLatest.txt ./getTweet.log
+$ ./resume.sh ./twitter-api-keys/api-keys.toml ./screen_name.txt ./output/ ./ScreenNameLatest.txt ./getTweet.log # 途中から再開する場合
 ```
