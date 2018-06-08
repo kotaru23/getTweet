@@ -2,13 +2,13 @@
 
 ## Requirements
 
-- Python 3.6.x  
+- Python 3.6.x
 - OS: LinuxまたはmacOS
 - Docker(optional)
 
 ## Proxy
 プロキシの設定ができていないと大学内からTwitter APIを使うことができない。  
-下記をterminalで入力すること  
+下記をterminalで入力すること
 
 ```
 $ export https_proxy=proxy.uec.ac.jp:8080
@@ -17,7 +17,7 @@ $ export https_proxy=proxy.uec.ac.jp:8080
 ## 依存ライブラリのインストール
 
 ```
-pip install -r requirements.txt
+$ pip install -r requirements.txt
 ```
 
 ## Twitter API Keyの用意
@@ -53,16 +53,16 @@ Options:
 ## Example
 
 ```
-./getTweet.py -k "Twitter API Keysを記述したtomlファイルのPath" -s "Screen Nameを記述したファイルのパス" -o "jsonファイルを出力するディレクトリ"
+$ ./getTweet.py -k "Twitter API Keysを記述したtomlファイルのPath" -s "Screen Nameを記述したファイルのパス" -o "jsonファイルを出力するディレクトリ"
 ```
 
 ```
-echo "screen_name" | ./getTweet.py -k "Twitter API Keysを記述したtomlファイルのPath"  -o "jsonファイルを出力するディレクトリ"
+$ echo "screen_name" | ./getTweet.py -k "Twitter API Keysを記述したtomlファイルのPath"  -o "jsonファイルを出力するディレクトリ"
 ```
 
 取得したつぶやきデータはgzip形式で保存されます。中身はjsonファイルです。
 
-## Dockerを使う場合は、
+## Dockerを使う場合
 
 - 第1引数にTwitter API Keyのtomlファイルのパスを指定
 - 第2引数に取得したいscreen_name.txtを追加
