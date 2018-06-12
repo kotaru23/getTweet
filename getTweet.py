@@ -124,14 +124,13 @@ def wait(session):
         logger_wait.debug('Wait ' + str(wait_time) + ' seconds')
         sleep(wait_time)
     else:
-        logger_wait.warn('Wait 120 seconds. The watch of this computer may be wrong.')
-        # If wait_time is negative, the watch may be some time fast.
+        logger_wait.warn("120秒停止 時間がずれている可能性があります")
         # To avoid some error, wait 120 seconds for the moment.
         sleep(120)
     restart = session.get(check_time_url)
     restart_json = json.loads(restart.text)
     remaining = restart_json['resources']['statuses']['/statuses/user_timeline']['remaining']
-    if int(remaining) < int('200'):
+    if int(remaining) < 200:
         wait(session)
     return None
 
