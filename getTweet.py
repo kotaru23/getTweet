@@ -74,15 +74,18 @@ def requestTweet(params: dict, twitter_keys: list):
     logger_request.addHandler(handler)
     twitter_consumer_key, twitter_consumer_secret, twitter_access_token_key, twitter_access_token_secret = twitter_keys
     # Start Session
-    session = OAuth1Session(twitter_consumer_key,
-                            twitter_consumer_secret,
-                            twitter_access_token_key,
-                            twitter_access_token_secret,
-                            '200')
-    # このURLで特定のユーザのつぶやきを取得することができる
-    url = 'https://api.twitter.com/1.1/statuses/user_timeline.json'
-    # データを取得
-    res = session.get(url, params=params)
+    with OAuth1Session(twitter_consumer_key, twitter_consumer_secret, twitter_access_token_key, twitter_access_token_secret, '200') as session:
+        # このURLで特定のユーザのつぶやきを取得することができる
+        url = 'https://api.twitter.com/1.1/statuses/user_timeline.json'
+        try:
+            # データを取得
+            res = session.get(url, params=params)
+        except(ConnectionError):
+            logger_request.warn('ConnectionError')
+            return None
+        except:
+            logger_request.warn('セッションに関するエラー')
+            return None
     # エラー対策
     status = res.status_code
     if status == 200:
