@@ -20,6 +20,7 @@ from os.path import exists
 import codecs
 import sys
 import gzip
+from tqdm import tqdm
 
 '''
 Twitterのスクリーンネーム(@につづく名前)，取得したTwitterのつぶやきデータを保存するリスト，リクエストを投げる際に必要なパラメータを
@@ -197,7 +198,7 @@ def main(key: str, screen_name_list: str, output: str) -> list:
     # 出力するディレクトリが存在しなければ作成
     if exists(output) is False:
         mkdir(output)
-    for sn in screen_names:
+    for sn in tqdm(screen_names):
         jsonfilename = output + "/" + sn + ".json"
         save_tweet(sn, jsonfilename, twitter_keys)
         # 最後に取得してアカウントを保存
