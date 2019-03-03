@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Python 3.6.x
+- Python 3.7.x
 - OS: LinuxまたはmacOS
 - Docker(optional)
 
