@@ -6,16 +6,7 @@
 - OS: LinuxまたはmacOS
 - Docker(optional)
 
-## Proxy
-プロキシの設定ができていないと大学内からTwitter APIを使うことができない。  
-下記をterminalで入力すること
-
-```
-$ export https_proxy=proxy.uec.ac.jp:8080
-```
-
 ## 依存ライブラリのインストール
-
 ```
 $ pip install -r requirements.txt
 ```
@@ -67,9 +58,6 @@ $ echo "screen_name" | ./getTweet.py -k "Twitter API Keysを記述したtomlフ�
 - 第1引数にTwitter API Keyのtomlファイルのパスを指定
 - 第2引数に取得したいscreen_name.txtを追加
 - 第3引数に出力先ディレクトリを指定
-- 第4引数に最後に取得したスクリーンネームを保存するためのファイルパスを指定
-- 第5引数にログファイルのパスを指定
-
 ```
 $ docker pull geotaru/get-tweet # DockerのイメージをDocker Hubからダウンロード(最初のみ)
 $ ./run.sh ./twitter-api-keys/api-keys.toml ./screen_name.txt ./output/ ./ScreenNameLatest.txt ./getTweet.log
