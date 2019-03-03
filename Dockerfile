@@ -1,4 +1,4 @@
-FROM python:3.6.5
+FROM python:3.7.2
 
 # -- Install Pipenv:
 RUN apt-get update -y && apt-get upgrade -y
